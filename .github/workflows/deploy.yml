@@ -1,0 +1,49 @@
+# Minimal "Deploy to GitHub Pages" workflow.
+#
+# This file is copied into the THIN GitHub Pages repo's .github/workflows/
+# (as deploy.yml) by the deploy script. It does NOT build the app — it only
+# uploads the static files already present on the gh-pages branch and deploys
+# them. The source repo never needs GitHub Actions.
+#
+# Prerequisite (one-time, manual): in the thin repo, Settings → Pages →
+# "Build and deployment" → Source = "GitHub Actions" (not "Deploy from a branch").
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [gh-pages]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
